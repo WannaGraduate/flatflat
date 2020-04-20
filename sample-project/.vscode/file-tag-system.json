@@ -1,0 +1,33 @@
+{
+    "version": 1,
+    "groups": {
+        "type": {
+            "type": "disjoint",
+            "tags": ["component", "model", "view"]
+        },
+        "test": {
+            "type": "any",
+            "tags": ["test"]
+        }
+    },
+    "tags": {
+        "component": [
+            "aaa.component.test.ts",
+            "aaa.component.ts",
+            "bbb.component.test.ts",
+            "bbb.component.ts"
+        ],
+        "model": [
+            "aaa.model.ts",
+            "bbb.model.ts"
+        ],
+        "view": [
+            "aaa.view.html",
+            "bbb.view.html"
+        ],
+        "test": [
+            "aaa.component.test.ts",
+            "bbb.component.test.ts"
+        ]
+    }
+}
