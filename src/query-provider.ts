@@ -1,13 +1,11 @@
 import * as vscode from 'vscode';
 
-import { Tag } from './tag';
+export class QueryProvider implements vscode.TreeDataProvider<string> {
 
-export class QueryProvider implements vscode.TreeDataProvider<Tag> {
+    private _onDidChangeTreeData: vscode.EventEmitter<string | undefined> = new vscode.EventEmitter<string | undefined>();
+    private _queryList: string[] = [];
 
-    private _onDidChangeTreeData: vscode.EventEmitter<Tag | undefined> = new vscode.EventEmitter<Tag | undefined>();
-    private _queryList: Tag[] = [];
-
-	readonly onDidChangeTreeData: vscode.Event<Tag | undefined> = this._onDidChangeTreeData.event;
+	readonly onDidChangeTreeData: vscode.Event<string | undefined> = this._onDidChangeTreeData.event;
 
 	constructor() {
 	}
@@ -16,15 +14,22 @@ export class QueryProvider implements vscode.TreeDataProvider<Tag> {
 		this._onDidChangeTreeData.fire();
 	}
 
-	getTreeItem(element: Tag): vscode.TreeItem {
-		return element;
+	getTreeItem(element: string): vscode.TreeItem {
+		return {
+            label: element,
+            command: {
+                command: 'queries.delete',
+                title: '',
+                arguments: [element],
+            }
+        };
 	}
 
-	getChildren(element?: Tag): Tag[] {
+	getChildren(element?: string): string[] {
         return this._queryList;
     }
 
-    set queryList(queryList: Tag[]) {
+    set queryList(queryList: string[]) {
         this._queryList = queryList;
     }
 

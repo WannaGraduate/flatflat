@@ -4,12 +4,11 @@ import * as vscode from 'vscode';
 
 import { File } from './file';
 import { uniqBy } from './lib/uniqBy';
-import { Tag } from './tag';
 
 export class FileProvider implements vscode.TreeDataProvider<File> {
 
     private _onDidChangeTreeData: vscode.EventEmitter<File | undefined> = new vscode.EventEmitter<File | undefined>();
-    private _queries: Tag[] = [];
+    private _queries: string[] = [];
     private fileList: File[] = [];
 
 	readonly onDidChangeTreeData: vscode.Event<File | undefined> = this._onDidChangeTreeData.event;
@@ -38,7 +37,7 @@ export class FileProvider implements vscode.TreeDataProvider<File> {
         }
     }
 
-    set queries(queries: Tag[]) {
+    set queries(queries: string[]) {
         this._queries = queries;
     }
 
@@ -48,7 +47,7 @@ export class FileProvider implements vscode.TreeDataProvider<File> {
             this.fileList = [];
             for (const file of fileList) {
                 for (const query of this._queries) {
-                    if (file.includes(query.label)) {
+                    if (file.includes(query)) {
                         this.fileList = uniqBy(this.fileList.concat([new File(file, path.join(this.workspaceRoot, file), vscode.TreeItemCollapsibleState.None, { 
                             command: 'files.openFile', 
                             title: "Open File", 

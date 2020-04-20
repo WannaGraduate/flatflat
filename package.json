@@ -10,7 +10,6 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onView:tags",
         "onView:queries",
         "onView:files"
 	],
@@ -27,10 +26,6 @@
         },
         "views": {
 			"file-tag-system": [
-				{
-					"id": "tags",
-                    "name": "Tags"
-                },
                 {
                     "id": "queries",
                     "name": "Queries"
@@ -45,8 +40,25 @@
 			{
 				"command": "files.openFile",
 				"title": "Open File"
-			}
-		]
+            },
+            {
+                "command": "queries.addGroup",
+                "title": "Add Group to Query",
+                "icon": {
+                    "dark": "resources/add.svg",
+                    "light": "resources/add.svg"
+                }
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "queries.addGroup",
+                    "when": "view == queries",
+                    "group": "navigation"
+                }
+            ]
+        }
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
