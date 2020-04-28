@@ -2,60 +2,130 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { File } from './file';
-import { uniqBy } from './lib/uniqBy';
+import { Item } from './file';
+import { getTagGroups } from './tag-group';
+import { TagGroup } from './interface/tag-info.interface';
 
-export class FileProvider implements vscode.TreeDataProvider<File> {
-
-    private _onDidChangeTreeData: vscode.EventEmitter<File | undefined> = new vscode.EventEmitter<File | undefined>();
+export class FileProvider implements vscode.TreeDataProvider<Item> {
+    private _onDidChangeTreeData: vscode.EventEmitter<
+        Item | undefined
+    > = new vscode.EventEmitter<Item | undefined>();
     private _queries: string[] = [];
-    private fileList: File[] = [];
+    //private fileList: Item[] = [];
 
-	readonly onDidChangeTreeData: vscode.Event<File | undefined> = this._onDidChangeTreeData.event;
+    readonly onDidChangeTreeData: vscode.Event<Item | undefined> = this
+        ._onDidChangeTreeData.event;
 
-	constructor(private workspaceRoot: string) {
-	}
+    constructor(private workspaceRoot: string) {}
 
-	refresh(): void {
+    refresh(): void {
         this._onDidChangeTreeData.fire();
-        this.getFileList();
-	}
+        // this.getChildren();
+    }
 
-	getTreeItem(element: File): vscode.TreeItem {
-		return element;
-	}
+    getTreeItem(element: Item): vscode.TreeItem {
+        return element;
+    }
 
-	getChildren(element?: File): File[] {
-		if (!this.workspaceRoot) {
-			vscode.window.showInformationMessage('No File in empty workspace');
-			return [];
-		}
-        if (!element) {
-            return this.fileList;
-        } else {
+    getChildren(element?: Item): Item[] {
+        if (!this.workspaceRoot) {
+            vscode.window.showInformationMessage('No File in empty workspace');
             return [];
+        }
+        if (element) {
+            if (
+                element.collapsibleState ===
+                vscode.TreeItemCollapsibleState.None
+            ) {
+                return [];
+            }
+
+            if (element.children === null) {
+                const rootFiles = fs.readdirSync(this.workspaceRoot);
+                const fileNames = rootFiles.filter((name) =>
+                    [...element.parentTagNames, element.label].reduce<boolean>(
+                        (bool, tag) => {
+                            return bool && name.includes(tag);
+                        },
+
+                        true
+                    )
+                );
+                return fileNames.map((fileName) => {
+                    return new Item(
+                        fileName,
+                        vscode.TreeItemCollapsibleState.None,
+                        [...element.parentTagNames, element.label],
+                        null,
+                        path.join(this.workspaceRoot, fileName)
+                    );
+                });
+            } else {
+                return Object.entries(element.children!).map(([k, v]) => {
+                    return new Item(
+                        k,
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        [...element.parentTagNames, element.label],
+                        v
+                    );
+                });
+            }
+        } else {
+            if (this._queries.length === 0) {
+                return [];
+            }
+            const tagInfo = getTagGroups();
+            const groups = Object.entries(tagInfo.groups);
+            const queriedGroups: [string, TagGroup][] = this._queries.map(
+                (query) => groups.find(([groupName]) => groupName === query)!
+            );
+
+            //const tagFileTuples = Object.entries(tagInfo.tags);
+            const queriedTagMatrix = Array.from(
+                { length: queriedGroups.length },
+                (_, i) => queriedGroups[i][1].tags
+            );
+            console.log(queriedTagMatrix);
+            const obj = makeSth(0, queriedTagMatrix);
+            // const queriedTags = queriedTagMatrix.reduce((result, tags) => [
+            //     ...result,
+            //     ...tags,
+            // ]);
+
+            return queriedTagMatrix[0].map((tag) => {
+                return new Item(
+                    tag,
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    [],
+                    obj[tag]
+                );
+            });
         }
     }
 
     set queries(queries: string[]) {
         this._queries = queries;
     }
+}
 
-    private getFileList() {
-        if (this.workspaceRoot) {
-            const fileList = fs.readdirSync(this.workspaceRoot);
-            this.fileList = [];
-            for (const file of fileList) {
-                for (const query of this._queries) {
-                    if (file.includes(query)) {
-                        this.fileList = uniqBy(this.fileList.concat([new File(file, path.join(this.workspaceRoot, file), vscode.TreeItemCollapsibleState.None, { 
-                            command: 'files.openFile', 
-                            title: "Open File", 
-                            arguments: [vscode.Uri.parse(path.join(this.workspaceRoot, file))], 
-                        })]), 'label');
-                    }
-                }
-            }
-        }
+const makeSth = (i: number, tagMatrix: string[][]): Sth => {
+    const keys = tagMatrix[i];
+
+    if (i === tagMatrix.length - 1) {
+        return keys.reduce<Sth>(
+            (result, tag) => ({
+                ...result,
+                [tag]: null,
+            }),
+            {}
+        );
     }
+
+    return keys.reduce<Sth>((result, tag) => {
+        return { ...result, [tag]: makeSth(i + 1, tagMatrix) };
+    }, {});
+};
+
+export interface Sth {
+    [key: string]: Sth | null;
 }
