@@ -54,11 +54,12 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
             let Items: Item[] = [];
             // declarative 하지 못함 개극혐인데 이번 함수 호출 내에 처리될 파일들
             let currentRemainedFiles: string[] = element.remainedFiles;
-            // 다음 태그가 있으면
+            // 다음 쿼리가 있으면
             if (element.tagToFilesGroupedByQuery.length !== 0) {
                 const nextTagToFiles = element.tagToFilesGroupedByQuery[0];
 
-                // (남은 파일 ^ 다음 태그 파일)c
+                // 필터하는 곳이 여러 군데 퍼져 있음 태그별로 remainedFiles 를 관리하며 내려가는 것보다 편해서 일단 이렇게 작성함
+                // 이번 쿼리에는 해당하지만 다음 쿼리에는 해당하지 않는 친구들을 걸러냄
                 currentRemainedFiles = element.remainedFiles.filter((file) =>
                     nextTagToFiles.reduce<boolean>(
                         (bool, tagToFile) =>
@@ -86,17 +87,27 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                         : element.tagToFilesGroupedByQuery[0].reduce<Item[]>(
                               (arr, firstTagToFiles) => [
                                   ...arr,
-                                  ...Object.entries(firstTagToFiles).map(
-                                      ([tag]) =>
-                                          new Item(
-                                              tag,
-                                              vscode.TreeItemCollapsibleState.Collapsed,
-                                              nextRemainedFiles,
-                                              element.tagToFilesGroupedByQuery.slice(
-                                                  1,
+                                  ...Object.entries(firstTagToFiles)
+                                      .map(
+                                          ([tag]) =>
+                                              new Item(
+                                                  tag,
+                                                  vscode.TreeItemCollapsibleState.Collapsed,
+                                                  // 다음 쿼리에는 해당하지만 다음 태그에는 해당하지 않는 파일 제거
+                                                  nextRemainedFiles.filter(
+                                                      (file) =>
+                                                          file.includes(tag),
+                                                  ),
+                                                  element.tagToFilesGroupedByQuery.slice(
+                                                      1,
+                                                  ),
                                               ),
-                                          ),
-                                  ),
+                                      )
+                                      // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
+                                      .filter(
+                                          (item) =>
+                                              item.remainedFiles.length !== 0,
+                                      ),
                               ],
                               [],
                           );
@@ -109,7 +120,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             file,
                             vscode.TreeItemCollapsibleState.None,
                             [],
-                            element.tagToFilesGroupedByQuery.slice(1),
+                            [],
                         ),
                 ),
             ];
