@@ -8,7 +8,11 @@ export interface TagInfo {
     };
 }
 
-export interface TagGroup {
+interface TagGroup {
     type: string;
     tags: string[];
+}
+
+export interface TagToFiles {
+    [key: string]: string[];
 }

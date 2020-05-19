@@ -2,15 +2,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { Item } from './file';
-import { TagGroup, TagInfo } from './interface/tag-info.interface';
+import { Item } from './item';
+import { TagInfo, TagToFiles } from './interface/tag-info.interface';
 
 export class FileProvider implements vscode.TreeDataProvider<Item> {
     private _onDidChangeTreeData: vscode.EventEmitter<
         Item | undefined
     > = new vscode.EventEmitter<Item | undefined>();
     private _queries: string[] = [];
-    //private fileList: Item[] = [];
+
     private tagInfo: TagInfo = JSON.parse(
         fs.readFileSync(
             path.join(
@@ -51,113 +51,100 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 return [];
             }
 
-            if (element.children === null) {
-                const { tags }: TagInfo = this.tagInfo;
-                const rootFiles = [
-                    ...new Set(
-                        Object.values(tags).reduce<string[]>(
-                            (result, files) => {
-                                return [...result, ...files];
-                            },
-                            [],
-                        ),
-                    ),
-                ];
+            let Items: Item[] = [];
+            // declarative 하지 못함 개극혐인데 이번 함수 호출 내에 처리될 파일들
+            let currentRemainedFiles: string[] = element.remainedFiles;
+            // 다음 태그가 있으면
+            if (element.tagToFilesGroupedByQuery.length !== 0) {
+                const nextTagToFiles = element.tagToFilesGroupedByQuery[0];
 
-                const fileNames = rootFiles.filter((name) =>
-                    [...element.parentTagNames, element.label].reduce<boolean>(
-                        (bool, tag) => {
-                            return bool && name.includes(tag);
-                        },
-
+                // (남은 파일 ^ 다음 태그 파일)c
+                currentRemainedFiles = element.remainedFiles.filter((file) =>
+                    nextTagToFiles.reduce<boolean>(
+                        (bool, tagToFile) =>
+                            bool &&
+                            !Object.values(tagToFile)
+                                .reduce(
+                                    (flattened, elem) => [
+                                        ...flattened,
+                                        ...elem,
+                                    ],
+                                    [],
+                                )
+                                .includes(file),
                         true,
                     ),
                 );
-                return fileNames.map((fileName) => {
-                    return new Item(
-                        fileName,
-                        vscode.TreeItemCollapsibleState.None,
-                        [...element.parentTagNames, element.label],
-                        null,
-                        path.join(this.workspaceRoot, fileName),
-                        {
-                            command: 'files.openFile',
-                            title: 'Open File',
-                            arguments: [
-                                vscode.Uri.file(
-                                    path.join(this.workspaceRoot, fileName),
-                                ),
-                            ],
-                        },
-                    );
-                });
-            } else {
-                return Object.entries(element.children!).map(([k, v]) => {
-                    return new Item(
-                        k,
-                        vscode.TreeItemCollapsibleState.Collapsed,
-                        [...element.parentTagNames, element.label],
-                        v,
-                    );
-                });
+                // 다음 쿼리에 포함되는 파일들
+                const nextRemainedFiles = element.remainedFiles.filter(
+                    (file) => !currentRemainedFiles.includes(file),
+                );
+
+                Items =
+                    nextRemainedFiles.length === 0
+                        ? []
+                        : element.tagToFilesGroupedByQuery[0].reduce<Item[]>(
+                              (arr, firstTagToFiles) => [
+                                  ...arr,
+                                  ...Object.entries(firstTagToFiles).map(
+                                      ([tag]) =>
+                                          new Item(
+                                              tag,
+                                              vscode.TreeItemCollapsibleState.Collapsed,
+                                              nextRemainedFiles,
+                                              element.tagToFilesGroupedByQuery.slice(
+                                                  1,
+                                              ),
+                                          ),
+                                  ),
+                              ],
+                              [],
+                          );
             }
+            return [
+                ...Items,
+                ...currentRemainedFiles.map(
+                    (file) =>
+                        new Item(
+                            file,
+                            vscode.TreeItemCollapsibleState.None,
+                            [],
+                            element.tagToFilesGroupedByQuery.slice(1),
+                        ),
+                ),
+            ];
         } else {
             if (this._queries.length === 0) {
                 return [];
             }
-
-            const groupEntries = Object.entries(this.tagInfo.groups);
-            const queriedGroups: [string, TagGroup][] = this._queries.map(
+            const tagToFilesGroupedByQuery: TagToFiles[][] = this._queries.map(
                 (query) =>
-                    groupEntries.find(([groupName]) => groupName === query)!,
+                    this.tagInfo.groups[query].tags.map((tag) => ({
+                        [tag]: this.tagInfo.tags[tag],
+                    })),
             );
 
-            //const tagFileTuples = Object.entries(tagInfo.tags);
-            const queriedTagMatrix = Array.from(
-                { length: queriedGroups.length },
-                (_, i) => queriedGroups[i][1].tags,
+            // 자료구조가 너무 복잡한 것 같음 태그간의 순서 레벨이 필요하다고 생각했는데 단순화할 방법이 있을지 모르겠음
+            return tagToFilesGroupedByQuery[0].reduce<Item[]>(
+                (arr, firstTagToFiles) => [
+                    ...arr,
+                    ...Object.entries(firstTagToFiles).map(
+                        ([tag, files]) =>
+                            new Item(
+                                tag,
+                                vscode.TreeItemCollapsibleState.Collapsed,
+                                files,
+                                // slice가 범위 넘으면 빈 배열
+                                tagToFilesGroupedByQuery.slice(1),
+                            ),
+                    ),
+                ],
+                [],
             );
-            console.log(queriedTagMatrix);
-            const obj = makeSth(0, queriedTagMatrix);
-            // const queriedTags = queriedTagMatrix.reduce((result, tags) => [
-            //     ...result,
-            //     ...tags,
-            // ]);
-
-            return queriedTagMatrix[0].map((tag) => {
-                return new Item(
-                    tag,
-                    vscode.TreeItemCollapsibleState.Collapsed,
-                    [],
-                    obj[tag],
-                );
-            });
         }
     }
 
     set queries(queries: string[]) {
         this._queries = queries;
     }
-}
-
-const makeSth = (i: number, tagMatrix: string[][]): Sth => {
-    const keys = tagMatrix[i];
-
-    if (i === tagMatrix.length - 1) {
-        return keys.reduce<Sth>(
-            (result, tag) => ({
-                ...result,
-                [tag]: null,
-            }),
-            {},
-        );
-    }
-
-    return keys.reduce<Sth>((result, tag) => {
-        return { ...result, [tag]: makeSth(i + 1, tagMatrix) };
-    }, {});
-};
-
-export interface Sth {
-    [key: string]: Sth | null;
 }
