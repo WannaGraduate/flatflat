@@ -3,8 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { Item } from './file';
-import { getTagGroups } from './tag-group';
-import { TagGroup } from './interface/tag-info.interface';
+import { TagGroup, TagInfo } from './interface/tag-info.interface';
 
 export class FileProvider implements vscode.TreeDataProvider<Item> {
     private _onDidChangeTreeData: vscode.EventEmitter<
@@ -12,6 +11,18 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
     > = new vscode.EventEmitter<Item | undefined>();
     private _queries: string[] = [];
     //private fileList: Item[] = [];
+    private tagInfo: TagInfo = JSON.parse(
+        fs.readFileSync(
+            path.join(
+                vscode.workspace.rootPath!,
+                '.vscode',
+                'file-tag-system.json',
+            ),
+            {
+                encoding: 'utf8',
+            },
+        ),
+    );
 
     readonly onDidChangeTreeData: vscode.Event<Item | undefined> = this
         ._onDidChangeTreeData.event;
@@ -41,15 +52,26 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
             }
 
             if (element.children === null) {
-                const rootFiles = fs.readdirSync(this.workspaceRoot);
+                const { tags }: TagInfo = this.tagInfo;
+                const rootFiles = [
+                    ...new Set(
+                        Object.values(tags).reduce<string[]>(
+                            (result, files) => {
+                                return [...result, ...files];
+                            },
+                            [],
+                        ),
+                    ),
+                ];
+
                 const fileNames = rootFiles.filter((name) =>
                     [...element.parentTagNames, element.label].reduce<boolean>(
                         (bool, tag) => {
                             return bool && name.includes(tag);
                         },
 
-                        true
-                    )
+                        true,
+                    ),
                 );
                 return fileNames.map((fileName) => {
                     return new Item(
@@ -57,7 +79,16 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                         vscode.TreeItemCollapsibleState.None,
                         [...element.parentTagNames, element.label],
                         null,
-                        path.join(this.workspaceRoot, fileName)
+                        path.join(this.workspaceRoot, fileName),
+                        {
+                            command: 'files.openFile',
+                            title: 'Open File',
+                            arguments: [
+                                vscode.Uri.file(
+                                    path.join(this.workspaceRoot, fileName),
+                                ),
+                            ],
+                        },
                     );
                 });
             } else {
@@ -66,7 +97,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                         k,
                         vscode.TreeItemCollapsibleState.Collapsed,
                         [...element.parentTagNames, element.label],
-                        v
+                        v,
                     );
                 });
             }
@@ -74,16 +105,17 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
             if (this._queries.length === 0) {
                 return [];
             }
-            const tagInfo = getTagGroups();
-            const groups = Object.entries(tagInfo.groups);
+
+            const groupEntries = Object.entries(this.tagInfo.groups);
             const queriedGroups: [string, TagGroup][] = this._queries.map(
-                (query) => groups.find(([groupName]) => groupName === query)!
+                (query) =>
+                    groupEntries.find(([groupName]) => groupName === query)!,
             );
 
             //const tagFileTuples = Object.entries(tagInfo.tags);
             const queriedTagMatrix = Array.from(
                 { length: queriedGroups.length },
-                (_, i) => queriedGroups[i][1].tags
+                (_, i) => queriedGroups[i][1].tags,
             );
             console.log(queriedTagMatrix);
             const obj = makeSth(0, queriedTagMatrix);
@@ -97,7 +129,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                     tag,
                     vscode.TreeItemCollapsibleState.Collapsed,
                     [],
-                    obj[tag]
+                    obj[tag],
                 );
             });
         }
@@ -117,7 +149,7 @@ const makeSth = (i: number, tagMatrix: string[][]): Sth => {
                 ...result,
                 [tag]: null,
             }),
-            {}
+            {},
         );
     }
 

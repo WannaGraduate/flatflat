@@ -4,18 +4,18 @@ import * as vscode from 'vscode';
 
 import { TagInfo } from './interface/tag-info.interface';
 
-export function getTagGroups(): TagInfo {
-    const tagInfo: TagInfo = JSON.parse(
+export function getTagGroups() {
+    const { groups }: TagInfo = JSON.parse(
         fs.readFileSync(
             path.join(
                 vscode.workspace.rootPath!,
                 '.vscode',
-                'file-tag-system.json'
+                'file-tag-system.json',
             ),
             {
                 encoding: 'utf8',
-            }
-        )
+            },
+        ),
     );
-    return tagInfo;
+    return Object.keys(groups);
 }

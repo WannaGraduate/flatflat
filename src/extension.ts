@@ -12,20 +12,15 @@ export function activate(context: vscode.ExtensionContext) {
     const fileProvider = new FileProvider(vscode.workspace.rootPath!);
     vscode.window.registerTreeDataProvider('files', fileProvider);
     vscode.commands.registerCommand('files.openFile', (resource) =>
-        vscode.window.showTextDocument(resource)
+        vscode.window.showTextDocument(resource),
     );
-
     const queryProvider = new QueryProvider();
     vscode.window.registerTreeDataProvider('queries', queryProvider);
     context.subscriptions.push(
         vscode.commands.registerCommand('queries.addGroup', async () => {
             const quickPick = vscode.window.createQuickPick();
-            const tagInfo = getTagGroups();
 
-            // I made this line suck cause I wanna declare groups as an array. need to think more
-            const groups = Object.entries(tagInfo.groups);
-
-            quickPick.items = groups.map(([label, tagGroup]) => ({ label }));
+            quickPick.items = getTagGroups().map((label) => ({ label }));
             quickPick.onDidChangeSelection((selection) => {
                 if (
                     queryProvider.queryList.findIndex((tag) => {
@@ -34,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
                 ) {
                     vscode.commands.executeCommand(
                         'queries.delete',
-                        selection[0].label
+                        selection[0].label,
                     );
                 } else {
                     queryProvider.queryList = queryProvider.queryList.concat([
@@ -48,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
             quickPick.onDidHide(() => quickPick.dispose());
             quickPick.show();
-        })
+        }),
     );
     vscode.commands.registerCommand('queries.delete', (groupName) => {
         const index = queryProvider.queryList.findIndex((tagGroup) => {
