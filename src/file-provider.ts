@@ -121,6 +121,16 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             vscode.TreeItemCollapsibleState.None,
                             [],
                             [],
+                            path.join(this.workspaceRoot, file),
+                            {
+                                command: 'files.openFile',
+                                title: 'Open File',
+                                arguments: [
+                                    vscode.Uri.file(
+                                        path.join(this.workspaceRoot, file),
+                                    ),
+                                ],
+                            },
                         ),
                 ),
             ];
