@@ -5,10 +5,14 @@ export interface TagInfo {
     };
     tags: {
         [key: string]: string[];
-    }
+    };
 }
 
 interface TagGroup {
-    type: string
-    tags: string[]
+    type: string;
+    tags: string[];
+}
+
+export interface TagToFiles {
+    [key: string]: string[];
 }
