@@ -87,6 +87,16 @@ function treeToTag(folderPath: string, ignores: string[]): TagInfo {
         }
     }
 
+    result.groups = Object.keys(result.groups).reduce((groups: TagInfo['groups'], groupName) => {
+        if (result.groups[groupName].tags.length === 1) {
+            return groups;
+        } else {
+            groups[groupName] = result.groups[groupName];
+
+            return groups;
+        }
+    }, {});
+
     return result;
 }
 
