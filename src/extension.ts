@@ -1,14 +1,19 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { FileProvider } from './file-provider';
+import { migrate } from './lib/migrate';
 import { QueryProvider } from './query-provider';
 import { getTagGroups } from './tag-group';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    if (!fs.existsSync(path.join(vscode.workspace.rootPath!, '.vscode', 'file-tag-system.json'))) {
+        migrate(vscode.workspace.rootPath!);
+    }
+
     const fileProvider = new FileProvider(vscode.workspace.rootPath!);
     vscode.window.registerTreeDataProvider('files', fileProvider);
     vscode.commands.registerCommand('files.openFile', (resource) =>
