@@ -59,7 +59,7 @@ function treeToTag(folderPath: string, ignores: string[]): TagInfo {
                 // 재귀 호출 결과 합치기
                 Object.keys(groups).forEach(groupName => {
                     if (result.groups[groupName]) {
-                        result.groups[groupName].tags = result.groups[groupName].tags.concat(groups[groupName].tags);
+                        result.groups[groupName].tags = [...new Set(result.groups[groupName].tags.concat(groups[groupName].tags))];
                     } else {
                         result.groups[groupName] = groups[groupName];
                     }
