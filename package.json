@@ -2,7 +2,8 @@
 	"name": "file-tag-system",
 	"displayName": "File Tag System",
 	"description": "Manage Files with Tag System",
-	"version": "0.0.1",
+    "version": "0.0.1",
+    "publisher": "KimSeongYup",
 	"engines": {
 		"vscode": "^1.44.0"
 	},
