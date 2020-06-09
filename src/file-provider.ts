@@ -39,10 +39,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
     }
 
     getChildren(element?: Item): Item[] {
-        // .vscode 및 기타 무시해야할 애들 관련 로직 필요 일단은 샘플기준으로 .vscode만 날렸음
-        const rootFiles = fs
-            .readdirSync(vscode.workspace.workspaceFolders![0].uri.fsPath)
-            .slice(1);
         if (!this.workspaceRoot) {
             vscode.window.showInformationMessage('No File in empty workspace');
             return [];
@@ -128,9 +124,32 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 ),
             ];
         } else {
+            const workspaceFsPath = vscode.workspace.workspaceFolders![0].uri
+                .fsPath;
+
+            const rootFiles = fs.readdirSync(workspaceFsPath);
+
+            const gitIgnores = fs.existsSync(
+                path.join(workspaceFsPath, '.gitignore'),
+            )
+                ? fs
+                      .readFileSync(
+                          path.join(workspaceFsPath, '.gitignore'),
+                          'utf8',
+                      )
+                      .split('\n')
+                : [];
+            const ignores = [...gitIgnores, '.vscode', '.git', '.gitignore'];
+            const targetFiles = rootFiles.filter(
+                (file) => !ignores.includes(file),
+            );
+
+            console.log(ignores);
+            console.log(targetFiles);
+
             // QUERIES 비어있으면 root 통째로
             if (this._queries.length === 0) {
-                return rootFiles.map(
+                return targetFiles.map(
                     (file) =>
                         new Item(
                             file,
@@ -158,7 +177,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
             const firstTags = tagsGroupedByQuery[0];
 
             const remainedFilesGroupedByTag = firstTags.map((tag) =>
-                rootFiles.filter(
+                targetFiles.filter(
                     (file) =>
                         file
                             .split('.')
