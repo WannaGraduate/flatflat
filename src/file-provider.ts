@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { Item } from './item';
-import { TagInfo, TagToFiles } from './interface/tag-info.interface';
+import { TagInfo } from './interface/tag-info.interface';
 
 export class FileProvider implements vscode.TreeDataProvider<Item> {
     private _onDidChangeTreeData: vscode.EventEmitter<
@@ -39,10 +39,15 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
     }
 
     getChildren(element?: Item): Item[] {
+        // .vscode 및 기타 무시해야할 애들 관련 로직 필요 일단은 샘플기준으로 .vscode만 날렸음
+        const rootFiles = fs
+            .readdirSync(vscode.workspace.workspaceFolders![0].uri.fsPath)
+            .slice(1);
         if (!this.workspaceRoot) {
             vscode.window.showInformationMessage('No File in empty workspace');
             return [];
         }
+
         if (element) {
             if (
                 element.collapsibleState ===
@@ -53,68 +58,56 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
 
             let Items: Item[] = [];
             // declarative 하지 못함 개극혐인데 이번 함수 호출 내에 처리될 파일들
-            let currentRemainedFiles: string[] = element.remainedFiles;
+            let currentTagFiles: string[] = element.remainedFiles;
             // 다음 쿼리가 있으면
-            if (element.tagToFilesGroupedByQuery.length !== 0) {
-                const nextTagToFiles = element.tagToFilesGroupedByQuery[0];
-
-                // 필터하는 곳이 여러 군데 퍼져 있음 태그별로 remainedFiles 를 관리하며 내려가는 것보다 편해서 일단 이렇게 작성함
-                // 이번 쿼리에는 해당하지만 다음 쿼리에는 해당하지 않는 친구들을 걸러냄
-                currentRemainedFiles = element.remainedFiles.filter((file) =>
-                    nextTagToFiles.reduce<boolean>(
-                        (bool, tagToFile) =>
-                            bool &&
-                            !Object.values(tagToFile)
-                                .reduce(
-                                    (flattened, elem) => [
-                                        ...flattened,
-                                        ...elem,
-                                    ],
-                                    [],
-                                )
-                                .includes(file),
-                        true,
+            if (element.tagsGroupedByQuery.length !== 0) {
+                const nextTags = element.tagsGroupedByQuery[0];
+                const nextRemainedFiles = element.remainedFiles.filter((file) =>
+                    nextTags.some(
+                        (next_tag) =>
+                            file
+                                .split('.')
+                                .findIndex(
+                                    (splitted) => splitted === next_tag,
+                                ) !== -1,
                     ),
                 );
-                // 다음 쿼리에 포함되는 파일들
-                const nextRemainedFiles = element.remainedFiles.filter(
-                    (file) => !currentRemainedFiles.includes(file),
+                currentTagFiles = element.remainedFiles.filter(
+                    (file) => !nextRemainedFiles.includes(file),
                 );
 
                 Items =
                     nextRemainedFiles.length === 0
                         ? []
-                        : element.tagToFilesGroupedByQuery[0].reduce<Item[]>(
-                              (arr, firstTagToFiles) => [
-                                  ...arr,
-                                  ...Object.entries(firstTagToFiles)
-                                      .map(
-                                          ([tag]) =>
-                                              new Item(
-                                                  tag,
-                                                  vscode.TreeItemCollapsibleState.Collapsed,
-                                                  // 다음 쿼리에는 해당하지만 다음 태그에는 해당하지 않는 파일 제거
-                                                  nextRemainedFiles.filter(
-                                                      (file) =>
-                                                          file.includes(tag),
-                                                  ),
-                                                  element.tagToFilesGroupedByQuery.slice(
-                                                      1,
-                                                  ),
-                                              ),
-                                      )
-                                      // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
-                                      .filter(
-                                          (item) =>
-                                              item.remainedFiles.length !== 0,
+                        : nextTags.reduce<Item[]>(
+                              (arr, tag) =>
+                                  [
+                                      ...arr,
+                                      new Item(
+                                          tag,
+                                          vscode.TreeItemCollapsibleState.Collapsed,
+                                          // 다음 쿼리에는 해당하지만 다음 태그에는 해당하지 않는 파일 제거
+                                          nextRemainedFiles.filter(
+                                              (file) =>
+                                                  file
+                                                      .split('.')
+                                                      .findIndex(
+                                                          (splitted) =>
+                                                              splitted === tag,
+                                                      ) !== -1,
+                                          ),
+                                          element.tagsGroupedByQuery.slice(1),
                                       ),
-                              ],
+                                      // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
+                                  ].filter(
+                                      (item) => item.remainedFiles.length !== 0,
+                                  ),
                               [],
                           );
             }
             return [
                 ...Items,
-                ...currentRemainedFiles.map(
+                ...currentTagFiles.map(
                     (file) =>
                         new Item(
                             file,
@@ -135,29 +128,52 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 ),
             ];
         } else {
+            // QUERIES 비어있으면 root 통째로
             if (this._queries.length === 0) {
-                return [];
+                return rootFiles.map(
+                    (file) =>
+                        new Item(
+                            file,
+                            vscode.TreeItemCollapsibleState.None,
+                            [],
+                            [],
+                            path.join(this.workspaceRoot, file),
+                            {
+                                command: 'files.openFile',
+                                title: 'Open File',
+                                arguments: [
+                                    vscode.Uri.file(
+                                        path.join(this.workspaceRoot, file),
+                                    ),
+                                ],
+                            },
+                        ),
+                );
             }
-            const tagToFilesGroupedByQuery: TagToFiles[][] = this._queries.map(
-                (query) =>
-                    this.tagInfo.groups[query].tags.map((tag) => ({
-                        [tag]: this.tagInfo.tags[tag],
-                    })),
+
+            const tagsGroupedByQuery = this._queries.map(
+                (query) => this.tagInfo.groups[query].tags,
             );
 
-            // 자료구조가 너무 복잡한 것 같음 태그간의 순서 레벨이 필요하다고 생각했는데 단순화할 방법이 있을지 모르겠음
-            return tagToFilesGroupedByQuery[0].reduce<Item[]>(
-                (arr, firstTagToFiles) => [
+            const firstTags = tagsGroupedByQuery[0];
+
+            const remainedFilesGroupedByTag = firstTags.map((tag) =>
+                rootFiles.filter(
+                    (file) =>
+                        file
+                            .split('.')
+                            .findIndex((splitted) => splitted === tag) !== -1,
+                ),
+            );
+
+            return firstTags.reduce<Item[]>(
+                (arr, levelOneTag, index) => [
                     ...arr,
-                    ...Object.entries(firstTagToFiles).map(
-                        ([tag, files]) =>
-                            new Item(
-                                tag,
-                                vscode.TreeItemCollapsibleState.Collapsed,
-                                files,
-                                // slice가 범위 넘으면 빈 배열
-                                tagToFilesGroupedByQuery.slice(1),
-                            ),
+                    new Item(
+                        levelOneTag,
+                        vscode.TreeItemCollapsibleState.Collapsed,
+                        remainedFilesGroupedByTag[index],
+                        tagsGroupedByQuery.slice(1),
                     ),
                 ],
                 [],

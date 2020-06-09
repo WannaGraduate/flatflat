@@ -3,16 +3,9 @@ export interface TagInfo {
     groups: {
         [key: string]: TagGroup;
     };
-    tags: {
-        [key: string]: string[];
-    };
 }
 
 interface TagGroup {
     type: string;
     tags: string[];
-}
-
-export interface TagToFiles {
-    [key: string]: string[];
 }
