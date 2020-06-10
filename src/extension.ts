@@ -1,5 +1,5 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { FileProvider } from './file-provider';
@@ -9,6 +9,19 @@ import { getTagGroups } from './tag-group';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    const tagGroupJsonPath = path.join(vscode.workspace.rootPath!, 'file-tag-system.json');
+    if (!fs.existsSync(tagGroupJsonPath)) {
+        fs.writeFileSync(tagGroupJsonPath, JSON.stringify({
+            version: 1,
+            groups: {
+                example: {
+                    type: 'any',
+                    tags: [],
+                },
+            }
+        }, null, 4));
+    }
+
     const fileProvider = new FileProvider(vscode.workspace.rootPath!);
     vscode.window.registerTreeDataProvider('files', fileProvider);
     vscode.commands.registerCommand('files.openFile', (resource) =>
