@@ -39,21 +39,30 @@
 		"commands": [
 			{
 				"command": "files.openFile",
-				"title": "Open File"
+				"title": "File Tag System: Open File"
             },
             {
                 "command": "queries.addGroup",
-                "title": "Add Group to Query",
+                "title": "File Tag System: Add Group to Query",
                 "icon": {
                     "dark": "resources/add.svg",
                     "light": "resources/add.svg"
                 }
+            },
+            {
+                "command": "Convert",
+                "title": "Convert"
             }
         ],
         "menus": {
             "view/title": [
                 {
                     "command": "queries.addGroup",
+                    "when": "view == queries",
+                    "group": "navigation"
+                },
+                {
+                    "command": "Convert",
                     "when": "view == queries",
                     "group": "navigation"
                 }
