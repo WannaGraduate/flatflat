@@ -9,7 +9,6 @@ export function getTagGroups() {
         fs.readFileSync(
             path.join(
                 vscode.workspace.rootPath!,
-                '.vscode',
                 'file-tag-system.json',
             ),
             {

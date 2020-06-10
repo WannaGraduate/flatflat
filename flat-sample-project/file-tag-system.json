@@ -1,0 +1,17 @@
+{
+    "version": 1,
+    "groups": {
+        "MVC": {
+            "type": "any",
+            "tags": ["component", "model", "view"]
+        },
+        "test": {
+            "type": "any",
+            "tags": ["test"]
+        },
+        "entity": {
+            "type": "any",
+            "tags": ["aaa", "bbb"]
+        }
+    }
+}
