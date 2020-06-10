@@ -58,6 +58,11 @@
                     "group": "navigation"
                 }
             ]
+        },
+        "keybindings": {
+            "command": "queries.addGroup",
+            "key": "ctrl+e",
+            "mac": "cmd+e"
         }
 	},
 	"scripts": {
