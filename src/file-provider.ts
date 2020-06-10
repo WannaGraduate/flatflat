@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { Item } from './item';
 import { TagInfo } from './interface/tag-info.interface';
+import { Item } from './item';
 
 export class FileProvider implements vscode.TreeDataProvider<Item> {
     private _onDidChangeTreeData: vscode.EventEmitter<
@@ -15,7 +15,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
         fs.readFileSync(
             path.join(
                 vscode.workspace.rootPath!,
-                '.vscode',
                 'file-tag-system.json',
             ),
             {
