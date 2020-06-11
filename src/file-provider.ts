@@ -36,14 +36,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
             ),
         );
         this.getChildren();
-        this.tagInfo = JSON.parse(
-            fs.readFileSync(
-                path.join(vscode.workspace.rootPath!, 'file-tag-system.json'),
-                {
-                    encoding: 'utf8',
-                },
-            ),
-        );
     }
 
     getTreeItem(element: Item): vscode.TreeItem {
