@@ -52,12 +52,25 @@
             {
                 "command": "Convert",
                 "title": "Convert"
+            },
+            {
+                "command": "Reset",
+                "title": "File Tag System: Reset Tag Groups in the Queries",
+                "icon": {
+                    "dark": "resources/refresh.svg",
+                    "light": "resources/refresh.svg"
+                }
             }
         ],
         "menus": {
             "view/title": [
                 {
                     "command": "queries.addGroup",
+                    "when": "view == queries",
+                    "group": "navigation"
+                },
+                {
+                    "command": "Reset",
                     "when": "view == queries",
                     "group": "navigation"
                 },

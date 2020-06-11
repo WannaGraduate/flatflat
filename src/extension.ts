@@ -64,6 +64,12 @@ export function activate(context: vscode.ExtensionContext) {
             queryProvider.refresh();
             fileProvider.refresh();
         });
+        vscode.commands.registerCommand('Reset', () => {
+            queryProvider.queryList = [];
+            fileProvider.queries = [];
+            queryProvider.refresh();
+            fileProvider.refresh();
+        });
     }
 }
 
