@@ -197,27 +197,15 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                     ),
             );
 
-            const notGrouped = notGroupedFiles.map(
-                (file) =>
-                    new Item(
-                        file,
-                        vscode.TreeItemCollapsibleState.None,
-                        [],
-                        [],
-                        path.join(this.workspaceRoot, file),
-                        {
-                            command: 'files.openFile',
-                            title: 'Open File',
-                            arguments: [
-                                vscode.Uri.file(
-                                    path.join(this.workspaceRoot, file),
-                                ),
-                            ],
-                        },
-                    ),
-            );
-
-            return [...grouped, ...notGrouped];
+            return [
+                ...grouped,
+                new Item(
+                    'non-' + tagsGroupedByQuery[0],
+                    vscode.TreeItemCollapsibleState.Collapsed,
+                    notGroupedFiles,
+                    tagsGroupedByQuery.slice(1),
+                ),
+            ];
         }
     }
 
