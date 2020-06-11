@@ -88,7 +88,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                                                       ) !== -1,
                                           ),
                                           element.tagsGroupedByQuery.slice(1),
-                                          vscode.ThemeIcon.Folder,
+                                          //   vscode.ThemeIcon.Folder,
                                       ),
                                   // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
                               )
@@ -105,7 +105,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             vscode.TreeItemCollapsibleState.None,
                             [],
                             [],
-                            vscode.ThemeIcon.File,
                             vscode.Uri.file(
                                 path.join(this.workspaceRoot, file),
                             ),
@@ -151,7 +150,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             vscode.TreeItemCollapsibleState.None,
                             [],
                             [],
-                            vscode.ThemeIcon.File,
                             vscode.Uri.file(
                                 path.join(this.workspaceRoot, file),
                             ),
@@ -199,7 +197,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                         vscode.TreeItemCollapsibleState.Collapsed,
                         remainedFilesGroupedByTag[index],
                         tagsGroupedByQuery.slice(1),
-                        vscode.ThemeIcon.Folder,
                     ),
             );
 
@@ -210,7 +207,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                     vscode.TreeItemCollapsibleState.Collapsed,
                     notGroupedFiles,
                     tagsGroupedByQuery.slice(1),
-                    vscode.ThemeIcon.Folder,
                 ),
             ];
         }
