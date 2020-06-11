@@ -13,10 +13,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
 
     private tagInfo: TagInfo = JSON.parse(
         fs.readFileSync(
-            path.join(
-                vscode.workspace.rootPath!,
-                'file-tag-system.json',
-            ),
+            path.join(vscode.workspace.rootPath!, 'file-tag-system.json'),
             {
                 encoding: 'utf8',
             },
@@ -143,9 +140,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 (file) => !ignores.includes(file),
             );
 
-            console.log(ignores);
-            console.log(targetFiles);
-
             // QUERIES 비어있으면 root 통째로
             if (this._queries.length === 0) {
                 return targetFiles.map(
@@ -184,18 +178,46 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 ),
             );
 
-            return firstTags.reduce<Item[]>(
-                (arr, levelOneTag, index) => [
-                    ...arr,
+            const notGroupedFiles = targetFiles.filter(
+                (file) =>
+                    !file
+                        .split('.')
+                        .find(
+                            (s) => firstTags.findIndex((t) => s === t) !== -1,
+                        ),
+            );
+
+            const grouped = firstTags.map(
+                (levelOneTag, index) =>
                     new Item(
                         levelOneTag,
                         vscode.TreeItemCollapsibleState.Collapsed,
                         remainedFilesGroupedByTag[index],
                         tagsGroupedByQuery.slice(1),
                     ),
-                ],
-                [],
             );
+
+            const notGrouped = notGroupedFiles.map(
+                (file) =>
+                    new Item(
+                        file,
+                        vscode.TreeItemCollapsibleState.None,
+                        [],
+                        [],
+                        path.join(this.workspaceRoot, file),
+                        {
+                            command: 'files.openFile',
+                            title: 'Open File',
+                            arguments: [
+                                vscode.Uri.file(
+                                    path.join(this.workspaceRoot, file),
+                                ),
+                            ],
+                        },
+                    ),
+            );
+
+            return [...grouped, ...notGrouped];
         }
     }
 
