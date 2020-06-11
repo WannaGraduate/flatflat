@@ -13,12 +13,12 @@ let rootDir = '';
 export function convert(workspacePath: string) {
   rootDir = workspacePath;
 
-  if (!fs.existsSync(path.join(workspacePath, 'converted'))) {
-      fs.mkdirSync(path.join(workspacePath, 'converted'));
+  if (!fs.existsSync(path.join(workspacePath, 'file-tag-system converted'))) {
+      fs.mkdirSync(path.join(workspacePath, 'file-tag-system converted'));
     }
   const tagInfo = treeToTag(workspacePath, ['.git', '.vscode']);
   fs.writeFileSync(
-    path.join(workspacePath, 'converted', 'file-tag-system.json'),
+    path.join(workspacePath, 'file-tag-system converted', 'file-tag-system.json'),
     JSON.stringify(tagInfo, null, 4)
   );
 }
@@ -66,14 +66,17 @@ function treeToTag(folderPath: string, ignores: string[]): TagInfo {
           }
         });
       } else {
-        const relativeDir = path.relative(rootDir, uri);
-        const convertedFileName = relativeDir.split(path.sep).join('.');
-        const convertedPath = path.join(rootDir, 'converted');
+        if (!uri.includes('file-tag-system converted')) {
+            const relativeDir = path.relative(rootDir, uri);
+            const convertedFileName = relativeDir.split(path.sep).join('.');
 
-        fs.copyFileSync(
-          uri,
-          path.join(convertedPath, convertedFileName)
-        );
+            const convertedPath = path.join(rootDir, 'file-tag-system converted');
+
+            fs.copyFileSync(
+              uri,
+              path.join(convertedPath, convertedFileName)
+            );
+        }
       }
     }
   }
