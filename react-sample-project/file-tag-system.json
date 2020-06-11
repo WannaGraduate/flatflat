@@ -4,15 +4,19 @@
     "groups": {
         "react": {
             "type": "any",
-            "tags": ["component", "style"]
+            "tags": ["page", "component", "store"]
         },
         "test": {
             "type": "any",
             "tags": ["test"]
         },
+        "style": {
+            "type": "any",
+            "tags": ["style"]
+        },
         "entity": {
             "type": "any",
-            "tags": ["App", "Home", "User"]
+            "tags": ["App", "Home", "User", "Auth", "Button", "Table"]
         }
     }
 }
