@@ -33,6 +33,7 @@ function treeToTag(folderPath: string, ignores: string[]): TagInfo {
   const [tag] = folderPath.split(path.sep).slice(-1);
   const result: TagInfo = {
     version: 1,
+    rootDir: '',
     groups: {},
   };
   const updatedIgnores = getIgnores(folderPath, ignores);

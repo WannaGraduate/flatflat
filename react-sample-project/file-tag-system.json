@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "rootDir": "src",
+    "groups": {
+        "react": {
+            "type": "any",
+            "tags": ["component", "style"]
+        },
+        "test": {
+            "type": "any",
+            "tags": ["test"]
+        },
+        "entity": {
+            "type": "any",
+            "tags": ["App", "Home", "User"]
+        }
+    }
+}

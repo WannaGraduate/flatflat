@@ -88,7 +88,6 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                                                       ) !== -1,
                                           ),
                                           element.tagsGroupedByQuery.slice(1),
-                                          //   vscode.ThemeIcon.Folder,
                                       ),
                                   // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
                               )
@@ -106,14 +105,14 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             [],
                             [],
                             vscode.Uri.file(
-                                path.join(this.workspaceRoot, file),
+                                path.join(this.workspaceRoot, this.tagInfo.rootDir, file),
                             ),
                             {
                                 command: 'files.openFile',
                                 title: 'Open File',
                                 arguments: [
                                     vscode.Uri.file(
-                                        path.join(this.workspaceRoot, file),
+                                        path.join(this.workspaceRoot, this.tagInfo.rootDir, file),
                                     ),
                                 ],
                             },
@@ -121,17 +120,14 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 ),
             ];
         } else {
-            const workspaceFsPath = vscode.workspace.workspaceFolders![0].uri
-                .fsPath;
-
-            const rootFiles = fs.readdirSync(workspaceFsPath);
+            const rootFiles = fs.readdirSync(path.join(this.workspaceRoot, this.tagInfo.rootDir));
 
             const gitIgnores = fs.existsSync(
-                path.join(workspaceFsPath, '.gitignore'),
+                path.join(this.workspaceRoot, '.gitignore'),
             )
                 ? fs
                       .readFileSync(
-                          path.join(workspaceFsPath, '.gitignore'),
+                          path.join(this.workspaceRoot, '.gitignore'),
                           'utf8',
                       )
                       .split('\n')
@@ -151,14 +147,14 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             [],
                             [],
                             vscode.Uri.file(
-                                path.join(this.workspaceRoot, file),
+                                path.join(this.workspaceRoot, this.tagInfo.rootDir, file),
                             ),
                             {
                                 command: 'files.openFile',
                                 title: 'Open File',
                                 arguments: [
                                     vscode.Uri.file(
-                                        path.join(this.workspaceRoot, file),
+                                        path.join(this.workspaceRoot, this.tagInfo.rootDir, file),
                                     ),
                                 ],
                             },

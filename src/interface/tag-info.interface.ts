@@ -1,5 +1,6 @@
 export interface TagInfo {
     version: number;
+    rootDir: string;
     groups: {
         [key: string]: TagGroup;
     };

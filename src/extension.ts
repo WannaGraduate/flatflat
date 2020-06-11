@@ -21,7 +21,9 @@ export function activate(context: vscode.ExtensionContext) {
     ) {
         vscode.window.showInformationMessage('No file-tag-system.json.');
     } else {
-        const fileProvider = new FileProvider(vscode.workspace.rootPath!);
+        const fileProvider = new FileProvider(
+            vscode.workspace.rootPath!
+        );
         vscode.window.registerTreeDataProvider('files', fileProvider);
         vscode.commands.registerCommand('files.openFile', (resource) =>
             vscode.window.showTextDocument(resource),
