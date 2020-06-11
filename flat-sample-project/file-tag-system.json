@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "rootDir": "src",
+    "rootDir": "",
     "groups": {
         "MVC": {
             "type": "any",
