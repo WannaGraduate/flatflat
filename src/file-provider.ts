@@ -89,6 +89,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                                                       ) !== -1,
                                           ),
                                           element.tagsGroupedByQuery.slice(1),
+                                          vscode.ThemeIcon.Folder,
                                       ),
                                       // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
                                   ].filter(
@@ -106,7 +107,10 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             vscode.TreeItemCollapsibleState.None,
                             [],
                             [],
-                            path.join(this.workspaceRoot, file),
+                            vscode.ThemeIcon.File,
+                            vscode.Uri.file(
+                                path.join(this.workspaceRoot, file),
+                            ),
                             {
                                 command: 'files.openFile',
                                 title: 'Open File',
@@ -149,7 +153,10 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                             vscode.TreeItemCollapsibleState.None,
                             [],
                             [],
-                            path.join(this.workspaceRoot, file),
+                            vscode.ThemeIcon.File,
+                            vscode.Uri.file(
+                                path.join(this.workspaceRoot, file),
+                            ),
                             {
                                 command: 'files.openFile',
                                 title: 'Open File',
@@ -194,6 +201,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                         vscode.TreeItemCollapsibleState.Collapsed,
                         remainedFilesGroupedByTag[index],
                         tagsGroupedByQuery.slice(1),
+                        vscode.ThemeIcon.Folder,
                     ),
             );
 

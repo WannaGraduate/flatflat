@@ -5,7 +5,8 @@ export class Item extends vscode.TreeItem {
         public collapsibleState: vscode.TreeItemCollapsibleState,
         public remainedFiles: string[],
         public tagsGroupedByQuery: string[][],
-        public uri?: string,
+        public iconPath?: vscode.ThemeIcon,
+        public resourceUri?: vscode.Uri,
         public command?: vscode.Command,
     ) {
         super(label, collapsibleState);
