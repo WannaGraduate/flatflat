@@ -14,7 +14,11 @@ export function activate(context: vscode.ExtensionContext) {
         convert(vscode.workspace.rootPath!);
     });
 
-    if (!fs.existsSync(path.join(vscode.workspace.rootPath!, 'file-tag-system.json'))) {
+    if (
+        !fs.existsSync(
+            path.join(vscode.workspace.rootPath!, 'file-tag-system.json'),
+        )
+    ) {
         vscode.window.showInformationMessage('No file-tag-system.json.');
     } else {
         const fileProvider = new FileProvider(vscode.workspace.rootPath!);
@@ -40,9 +44,9 @@ export function activate(context: vscode.ExtensionContext) {
                             selection[0].label,
                         );
                     } else {
-                        queryProvider.queryList = queryProvider.queryList.concat([
-                            selection[0].label,
-                        ]);
+                        queryProvider.queryList = queryProvider.queryList.concat(
+                            [selection[0].label],
+                        );
 
                         fileProvider.queries = queryProvider.queryList;
                         queryProvider.refresh();
@@ -70,6 +74,12 @@ export function activate(context: vscode.ExtensionContext) {
             queryProvider.refresh();
             fileProvider.refresh();
         });
+        const fileSystemWatcher = vscode.workspace.createFileSystemWatcher(
+            '**/*.*',
+        );
+        fileSystemWatcher.onDidChange(() => fileProvider.refresh());
+        fileSystemWatcher.onDidCreate(() => fileProvider.refresh());
+        fileSystemWatcher.onDidDelete(() => fileProvider.refresh());
     }
 }
 

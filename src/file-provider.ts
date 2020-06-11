@@ -27,7 +27,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
-        // this.getChildren();
+        this.getChildren();
     }
 
     getTreeItem(element: Item): vscode.TreeItem {
@@ -71,10 +71,9 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                 Items =
                     nextRemainedFiles.length === 0
                         ? []
-                        : nextTags.reduce<Item[]>(
-                              (arr, tag) =>
-                                  [
-                                      ...arr,
+                        : nextTags
+                              .map(
+                                  (tag) =>
                                       new Item(
                                           tag,
                                           vscode.TreeItemCollapsibleState.Collapsed,
@@ -91,12 +90,11 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                                           element.tagsGroupedByQuery.slice(1),
                                           vscode.ThemeIcon.Folder,
                                       ),
-                                      // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
-                                  ].filter(
-                                      (item) => item.remainedFiles.length !== 0,
-                                  ),
-                              [],
-                          );
+                                  // 다음 태그에 해당하는 파일 아예 없으면 태그 자체를 표시 안함
+                              )
+                              .filter(
+                                  (item) => item.remainedFiles.length !== 0,
+                              );
             }
             return [
                 ...Items,
@@ -212,6 +210,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
                     vscode.TreeItemCollapsibleState.Collapsed,
                     notGroupedFiles,
                     tagsGroupedByQuery.slice(1),
+                    vscode.ThemeIcon.Folder,
                 ),
             ];
         }
