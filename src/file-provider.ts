@@ -200,7 +200,7 @@ export class FileProvider implements vscode.TreeDataProvider<Item> {
             return [
                 ...grouped,
                 new Item(
-                    'non-' + tagsGroupedByQuery[0],
+                    'non-' + this._queries[0],
                     vscode.TreeItemCollapsibleState.Collapsed,
                     notGroupedFiles,
                     tagsGroupedByQuery.slice(1),
