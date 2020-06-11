@@ -84,6 +84,11 @@ function treeToTag(folderPath: string, ignores: string[]): TagInfo {
 
   result.groups = Object.keys(result.groups).reduce(
     (groups: TagInfo['groups'], groupName) => {
+        if (result.groups[groupName].tags.includes('file-tag-system converted')) {
+            result.groups[groupName].tags = result.groups[groupName].tags.filter(tag => {
+                return tag !== 'file-tag-system converted';
+            });
+        }
       if (result.groups[groupName].tags.length === 1) {
         return groups;
       } else {
